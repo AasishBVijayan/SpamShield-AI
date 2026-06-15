@@ -2,3 +2,4 @@ venv/**/*
 emails.csv
 note.txt
 backend/__pycache__/**/*
+models/**/*

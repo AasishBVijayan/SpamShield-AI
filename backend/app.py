@@ -16,14 +16,41 @@ class EmailPayload(BaseModel):
     subject: str
     message: str
 
+import os
+import string
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+
+# Ensure NLTK resources are downloaded (will download silently if not present)
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+nltk.download('stopwords', quiet=True)
+
+ps = PorterStemmer()
+stop_words_set = set(stopwords.words('english'))
+punctuation_set = set(string.punctuation)
+
+def transform_text(text):
+    tokens = nltk.word_tokenize(text.lower())
+    cleaned_tokens = [
+        ps.stem(token)
+        for token in tokens
+        if token.isalnum() and token not in stop_words_set and token not in punctuation_set
+    ]
+    return " ".join(cleaned_tokens)
+
 # 3. Load your saved model and vectorizer safely on startup
 try:
-    # Adjust filenames if you named them differently
-    model = joblib.load("model.pkl")
-    vectorizer = joblib.load("vectorizer.pkl")
-    print("✅ Model and Vectorizer loaded successfully into memory.")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(BASE_DIR, "model.pkl")
+    vectorizer_path = os.path.join(BASE_DIR, "vectorizer.pkl")
+    
+    model = joblib.load(model_path)
+    vectorizer = joblib.load(vectorizer_path)
+    print("[INFO] Model and Vectorizer loaded successfully into memory.")
 except Exception as e:
-    print(f"❌ Error loading serialized model artifacts: {e}")
+    print(f"[ERROR] Error loading serialized model artifacts: {e}")
     raise RuntimeError("System configuration error: Missing model files.")
 
 # 4. Create the core prediction endpoint
@@ -37,8 +64,11 @@ async def predict_spam(payload: EmailPayload):
         # Combine subject and message if your training script expected them joined
         full_text = f"{payload.subject} {payload.message}"
         
-        # Transform the raw text using your saved pipeline
-        vectorized_text = vectorizer.transform([full_text])
+        # Clean and preprocess the input text exactly like we did during training!
+        cleaned_text = transform_text(full_text)
+        
+        # Transform the cleaned text using your saved pipeline
+        vectorized_text = vectorizer.transform([cleaned_text])
         
         # Generate binary prediction (0 = Ham, 1 = Spam)
         prediction = int(model.predict(vectorized_text)[0])

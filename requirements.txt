@@ -5,3 +5,9 @@ pandas
 numpy
 joblib
 python-multipart
+nltk
+matplotlib
+seaborn
+xgboost
+wordcloud
+jinja2
