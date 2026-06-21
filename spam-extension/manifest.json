@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Enron Spam Email Classifier",
+  "version": "1.0",
+  "description": "Analyzes email text using an ML backend to predict spam probabilities.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
